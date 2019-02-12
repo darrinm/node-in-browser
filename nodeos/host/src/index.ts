@@ -96,7 +96,7 @@ class VirtualMachine {
 
 function dragover_handler(ev: DragEvent) {
   ev.preventDefault();
-  ev.dataTransfer.dropEffect = "link";
+  ev.dataTransfer!.dropEffect = "link";
 }
 
 async function drop_handler(ev: DragEvent) {
@@ -114,7 +114,7 @@ async function drop_handler(ev: DragEvent) {
             todo.add(name);
             const reader = new FileReader();
             reader.onloadend = () => {
-              fs[name] = new Uint8Array(reader.result);
+              fs[name] = new Uint8Array(reader.result as ArrayBuffer);
               todo.delete(name);
               // console.log(name);
               (document.getElementById("status") as any).textContent = name;
@@ -139,7 +139,7 @@ async function drop_handler(ev: DragEvent) {
       await Promise.all(jobs);
     }
   };
-  var items = ev.dataTransfer.items;
+  var items = ev.dataTransfer!.items;
   for (var i = 0; i < items.length; ++i) {
     const item = items[i];
     if (item.kind != "file")
@@ -174,6 +174,7 @@ function load() {
   setInterval(resize, 500);
 
   new VirtualMachine({}, terminal).node([], false)
-  // new VirtualMachine({}, terminal).node(["node_modules/npm", "install", "--no-save", "semver"], false)
-  // new VirtualMachine({}, terminal).node(["node_modules/npm", "help"], false)
+  //new VirtualMachine({}, terminal).node(["node_modules/npm", "install", "--no-save", "semver"], false)
+  //new VirtualMachine({}, terminal).node(["node_modules/npm", "help"], false)
+  //new VirtualMachine({}, terminal).node(["node_modules/webpack", "--help"], true)
 }
