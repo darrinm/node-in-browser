@@ -1,17 +1,25 @@
 /// <reference path="../../types/vfs.ts" />
 /// <reference path="../../types/env.ts" />
-/// <reference path="../../../node_modules/@types/xterm/index.d.ts" />
+/// <reference path="../../../node_modules/xterm/typings/xterm.d.ts" />
 
-eval("self.Xterm = Terminal"); // alias, somehow the typings talk about "Xterm"
-const terminal = new Xterm(<Xterm.IOptions>{ cursorBlink: true, cols: 120, rows: 30, convertEol: true, });
+import "../../../node_modules/xterm/dist/xterm.css";
+import { Terminal } from "xterm";
+
+const terminal = new Terminal({ cursorBlink: true, cols: 120, rows: 30, convertEol: true, });
+
+window.addEventListener('load', event => {
+  document.body.addEventListener('drop', drop_handler);
+  document.body.addEventListener('dragover', dragover_handler);
+
+  load();
+});
 
 /**
  * Represents an execution environment, i.e. virtual OS with architecture, FS, etc.
  * Can host multiple workers that will have a consistent view of the FS, process.arch, etc.
  */
 class VirtualMachine {
-  public constructor(private fs: VirtualFileSystem, private terminal: Xterm) {
-
+  public constructor(private fs: VirtualFileSystem, private terminal: Terminal) {
   }
 
   private syscall(origin: Worker, func: string, arg: any): void {
@@ -20,16 +28,19 @@ class VirtualMachine {
         this.terminal.write(arg);
         eval("document").getElementById("stdout").textContent += arg;
         break;
+
       case "stderr":
         this.terminal.write(arg);
         eval("document").getElementById("stderr").textContent += arg;
         break;
+
       case "error":
         this.terminal.write("[Runtime Error]\n");
         this.terminal.write(arg + "\n");
         if (arg.stack)
           this.terminal.write(arg.stack + "\n");
         break;
+
       // case "__trace.fs":
       // case "__trace.require":
       //   eval("document").getElementById("console").textContent += `[${func}] ${arg}\n`;
@@ -40,6 +51,7 @@ class VirtualMachine {
       case "WRITE":
         this.fs[arg.path] = arg.content;
         break;
+
       case "EXIT":
         const exitCode = arg;
         origin.terminate();
@@ -55,7 +67,8 @@ class VirtualMachine {
     eval("document").getElementById("stderr").textContent = "";
     this.terminal.clear();
     const vm = this;
-    const worker = new Worker("/bin/node/app.js");
+    const hideNodeFromParcel = "node/src/app.js";
+    const worker = new Worker(hideNodeFromParcel);
     if (keepAlive) (self as any)._keepAlive = worker;
     worker.onmessage = function (ev: MessageEvent) { const { f, x } = ev.data; vm.syscall(this, f, x); };
     // worker.onerror = function (ev: ErrorEvent) { console.error(JSON.stringify(ev, null, 2)); };
@@ -94,12 +107,12 @@ class VirtualMachine {
   }
 }
 
-function dragover_handler(ev: DragEvent) {
+export function dragover_handler(ev: DragEvent) {
   ev.preventDefault();
   ev.dataTransfer!.dropEffect = "link";
 }
 
-async function drop_handler(ev: DragEvent) {
+export async function drop_handler(ev: DragEvent) {
   ev.preventDefault();
 
   const fs: VirtualFileSystem = {};
@@ -158,13 +171,14 @@ async function drop_handler(ev: DragEvent) {
   (self as any).nodeDebug = (...args: string[]) => start(args, true);
   start(["/" + firstPath.split('/')[1]], false);
 }
-function load() {
+
+export function load() {
   const terminalDiv = document.getElementById("xterm") as HTMLElement;
-  terminal.open(terminalDiv, true);
-  const term = terminal as any;
+  terminal.open(terminalDiv);
   const resize = () => {
-    const cw = term.charMeasure.width;
-    const ch = term.charMeasure.height;
+    const term = terminal as any;
+    const cw = term._core.charMeasure.width;
+    const ch = term._core.charMeasure.height;
     if (cw && ch)
       terminal.resize(terminalDiv.clientWidth / cw | 0, terminalDiv.clientHeight / ch | 0);
     // TODO: need to communicate that to process!

@@ -8,9 +8,9 @@
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
-    "outFile": "../../www/bin/node/app.js",
     "sourceMap": false,
     "strict": true,
+    "outDir": "../../dist",
     "target": "es5",
     "types": [
       "node"

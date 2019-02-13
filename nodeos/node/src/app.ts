@@ -326,7 +326,7 @@
         }
       }
 
-      public onread(nread: number, buffer: Buffer): void {};
+      public onread(nread: number, buffer: Buffer): void { };
       public reading: boolean = false;
 
       public getWindowSize(size: [number, number]): any /*error*/ {
@@ -434,7 +434,7 @@
     }
 
     class FSReqWrap {
-      public oncomplete(a: any = null, b: any = null) {}
+      public oncomplete(a: any = null, b: any = null) { }
     }
 
     let cwd = "/mnt";
