@@ -70,7 +70,12 @@ class VirtualMachine {
     const hideNodeFromParcel = "node/src/app.js";
     const worker = new Worker(hideNodeFromParcel);
     if (keepAlive) (self as any)._keepAlive = worker;
-    worker.onmessage = function (ev: MessageEvent) { const { f, x } = ev.data; vm.syscall(this, f, x); };
+
+    worker.onmessage = function (ev: MessageEvent) {
+      const { f, x } = ev.data;
+      vm.syscall(this, f, x);
+    };
+
     // worker.onerror = function (ev: ErrorEvent) { console.error(JSON.stringify(ev, null, 2)); };
     const env: Environment = { fs: this.fs, cwd: "/cwd" };
     worker.postMessage({ type: "start", args, env });
@@ -187,8 +192,9 @@ export function load() {
   (document.body as any).onresize = resize;
   setInterval(resize, 500);
 
-  new VirtualMachine({}, terminal).node([], false)
-  //new VirtualMachine({}, terminal).node(["node_modules/npm", "install", "--no-save", "semver"], false)
-  //new VirtualMachine({}, terminal).node(["node_modules/npm", "help"], false)
+  //new VirtualMachine({}, terminal).node([], false)
+  //new VirtualMachine({}, terminal).node(["node_modules/npm", "version"], false)
+  //new VirtualMachine({}, terminal).node(["node_modules/npm", "install", "yodasay"], false)
+  new VirtualMachine({}, terminal).node(["node_modules/npm", "help"], false)
   //new VirtualMachine({}, terminal).node(["node_modules/webpack", "--help"], true)
 }
